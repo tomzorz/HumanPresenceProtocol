@@ -1,6 +1,6 @@
 # Human Presence Protocol, generation 1 (HPP/1)
 
-**Status:** draft 1
+**Status:** draft 2
 **Repository:** this repository is the normative home of the specification.
 
 ## 1. Introduction
@@ -300,13 +300,15 @@ REQ-RCH-1: The daemon MUST compute the reachability object with the following pr
 3. Remove each candidate whose `connected` is `false`.
 4. Remove each candidate of kind `"localSeat"` or `"remoteDesktop"` whose `onConsole` is `"no"` or whose `locked` is `"yes"`. A value of `"unknown"` removes nothing: exclusion needs a definite negative, in the spirit of REQ-TRI-1.
 5. Order the remaining candidates:
-   1. Candidates whose `sessionId` equals the caller's `originSessionId` come first.
-   2. Then candidates whose `kind` equals the caller's `originKind`.
-   3. Within each group, ascending `idleMs`, with `null` values last.
-   4. Remaining ties break by ascending `sessionId` (byte order).
+   1. A candidate whose `sessionId` equals the caller's `originSessionId` comes first.
+   2. If the caller's `originKind` is not `"unknown"`, a candidate whose `kind` equals the caller's `originKind` comes next. An `originKind` of `"unknown"` places no candidate in this group.
+   3. Within each group, order the candidates by ascending `idleMs`, and place `null` values last.
+   4. Break each remaining tie by ascending `sessionId` in byte order.
 6. If no candidate remains, select `blockedBy` with the first match: `"offConsole"` if step 4 removed at least one candidate for `onConsole`, else `"locked"` if step 4 removed at least one candidate for `locked`, else `"absent"`.
 
 The ordering encodes one opinion, stated informatively: a request that arrived over a channel gets answered over that channel first. When both the local seat and an SSH session are live and the caller came through SSH, the SSH surface sorts first, and the client still sees the local seat listed after it and chooses freely.
+
+Step 5.2 excludes an `originKind` of `"unknown"`, stated informatively: an unclassified caller and an unclassified surface have nothing in common, and matching one to the other would sort the least understood surface above the local seat. Token-verified connections always report `originKind` as `"unknown"` (REQ-CTX-3), so this case is ordinary rather than rare.
 
 REQ-RCH-2: The client MUST handle an empty `reachable` array. A client that assumes a usable surface always exists does the wrong thing after the first user switch.
 
