@@ -1,0 +1,4 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tomzorz/portolan/main/docs/project.schema.json",
+  "description": "Human Presence Protocol (HPP/1, draft): a local JSON-RPC protocol where a per-user daemon reports where the human is (keyboard, SSH, remote desktop, gone) and where a calling process came from, so tools can route output."
+}
